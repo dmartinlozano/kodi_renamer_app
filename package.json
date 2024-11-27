@@ -1,0 +1,19 @@
+{
+    "name": "kodi_renamer",
+    "productName": "Kodi Renamer",
+    "version": "1.0.0",
+    "main": "main.js",
+    "author": "dmartinlozano",
+    "license": "Apache-2.0",
+    "scripts": {
+        "start": "electron ."
+    },
+    "dependencies": {
+        "axios": "^1.7.7",
+        "dotenv": "^16.4.5",
+        "electron": "^33.2.0",
+        "tmdb-js": "^1.1.6",
+        "tmdb-js-wrapper": "^1.0.4",
+        "uuid": "^11.0.3"
+    }
+}

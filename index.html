@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kodi Renamer</title>
+    <link rel="stylesheet" href="bulma.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .drop-area {
+            width: 80%;
+            height: 50px;
+            border: 2px dashed #4CAF50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #4CAF50;
+            margin: 0 auto;
+            transition: background-color 0.3s ease;
+        }
+
+        .drop-area.hover {
+            background-color: #f0f0f0;
+        }
+
+        .tabs {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-content div {
+            display: none;
+        }
+
+        .tab-content div:first-child {
+            display: block;
+        }
+
+        .tab-content {
+            padding: 1em;
+        }
+
+        .circular-progress {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #f3f3f3;
+            border-top: 1px solid #3498db;
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+        }
+
+        .movie-card {
+            max-height: 200px;
+            overflow: hidden;
+            padding: 10px;
+            box-sizing: border-box;
+            display: -webkit-box;
+            line-clamp: 5;
+            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
+            word-wrap: break-word;
+            line-height: 1.4;   
+            text-align: left;
+        }
+
+        .movie-card p {
+            margin: 0;
+            white-space: normal;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <script src="renderer.js"></script>
+    <script src="languageModal.js"></script>
+    <script src="findModal.js"></script>
+
+    <div class="tabs is-centered">
+        <ul>
+            <li class="is-active"><a>Films</a></li>
+            <li><a>TV Shows</a></li>
+        </ul>
+        <div class="tab-content">
+            <div>
+                <div class="drop-area" id="filmsDropArea">
+                    <p>Drag and drop files here</p>
+                </div>
+                <table class="table is-bordered is-striped is-hoverable is-fullwidth" style="margin-top: 30px;">
+                    <thead>
+                        <tr>
+                          <th>Original title</th>
+                          <th>Title to rename</th>
+                          <th><button class="button is-success" id="renameAll">Rename all</button></th>
+                        </tr>
+                    </thead>
+                    <tbody id="filmsList">
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <div lass="drop-area" id="tvShowDropArea">
+                    <p>Drag and drop the files here</p>
+                </div>
+                <ul id="tvShowsList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="languageModal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Language Settings</p>
+                <button class="delete" aria-label="close" id="closeModal"></button>
+            </header>
+            <section class="modal-card-body">
+                <div class="field">
+                    <label class="label">Default search language:</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="languageSelector">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success" id="saveLanguage">Save</button>
+                <button class="button" id="cancelModal">Cancel</button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="movieModal" class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+          <div class="box">
+            <form id="searchForm">
+              <div class="field is-flex">
+                <div class="control is-flex-grow-1">
+                  <input class="input" type="text" id="title" placeholder="Títle" required>
+                </div>
+                <div class="control" style="width: 5em;">
+                  <input class="input" type="text" id="year" placeholder="Year">
+                </div>
+                <div class="control" style="width: 20em;">
+                  <div class="select is-fullwidth">
+                    <select id="languageSelectorFindMovie" required>
+                    </select>
+                  </div>
+                </div>
+                <div class="control">
+                    <button type="submit" class="button is-link">Find</button>
+                </div>
+              </div>
+            </form>
+            <div id="movieResults" class="mt-5"></div>
+            <nav class="pagination is-centered" id="pagination" role="navigation" aria-label="pagination"></nav>
+            <button class="delete" id="closeModalBtn"></button>
+          </div>
+        </div>
+      </div>
+      
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const e = document.querySelectorAll(".tabs");
+            void 0 !== e && e.forEach(e => {
+                e.children[0].addEventListener("click", e => {
+                    var node = e.target;
+                    var nodename = '';
+                    while (node.localName != "ul") {
+                        if (node.localName == "a") nodename = node.innerText;
+                        node = node.parentNode;
+                    }
+                    var a = 0;
+                    Array.from(node.children).forEach(function (n) {
+                        n.classList.remove("is-active"),
+                            a++,
+                            node.parentNode.children[1].children[a - 1].style.display = "none",
+                            nodename == n.children[0].innerText && (n.classList.add("is-active"),
+                                node.parentNode.children[1].children[a - 1].style.display = "block")
+                    })
+
+                })
+            })
+        });
+    </script>
+</body>
+
+</html>
