@@ -1,5 +1,5 @@
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises;
 
 const extractNameWithoutExtension = (filePath) => path.parse(path.basename(filePath)).name;
 const extractExtension = (filePath) => {
@@ -18,9 +18,19 @@ const clearFileName = (fileName) => fileName
         .replace(/[\u0300-\u036f]/g, '')
         .trim();
 
+const isFolder = async (filePath) => {
+    try {
+        const stats = await fs.stat(filePath);
+        return stats.isDirectory();
+    } catch (error) {
+        return false;
+    }
+}
+
 module.exports = {
     extractNameWithoutExtension,
     extractYear,
     clearFileName,
-    extractExtension
+    extractExtension,
+    isFolder
 }

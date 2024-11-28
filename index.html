@@ -105,7 +105,7 @@
                         <tr>
                           <th>Original title</th>
                           <th>Title to rename</th>
-                          <th><button class="button is-success" id="renameAll">Rename all</button></th>
+                          <th><button class="button is-success" id="renameFilmsButton">Rename all</button></th>
                         </tr>
                     </thead>
                     <tbody id="filmsList">
@@ -113,10 +113,32 @@
                 </table>
             </div>
             <div>
-                <div lass="drop-area" id="tvShowDropArea">
-                    <p>Drag and drop the files here</p>
+                <div class="drop-area" id="tvShowDropArea">
+                    <p>Drag and drop the folder of tv show here</p>
+                    <p>(just one set at a time)</p>
                 </div>
-                <ul id="tvShowsList"></ul>
+                <table class="table is-bordered is-striped is-hoverable is-fullwidth" style="margin-top: 30px;">
+                    <thead>
+                        <tr>
+                          <th>Original title</th>
+                          <th>Title to rename</th>
+                          <th><button class="button is-success" id="renameTvShows">Rename all</button></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tvShowList">
+                    </tbody>
+                </table>
+                <table class="table is-bordered is-striped is-hoverable is-fullwidth" style="margin-top: 30px;" id="episodesTable">
+                    <thead>
+                        <tr>
+                          <th>Episodes</th>
+                          <th>Season</th>
+                          <th>Episode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="episodesList">
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -160,7 +182,7 @@
                 </div>
                 <div class="control" style="width: 20em;">
                   <div class="select is-fullwidth">
-                    <select id="languageSelectorFindMovie" required>
+                    <select id="languageSelectorFind" required>
                     </select>
                   </div>
                 </div>
@@ -169,7 +191,7 @@
                 </div>
               </div>
             </form>
-            <div id="movieResults" class="mt-5"></div>
+            <div id="findResults" class="mt-5"></div>
             <nav class="pagination is-centered" id="pagination" role="navigation" aria-label="pagination"></nav>
             <button class="delete" id="closeModalBtn"></button>
           </div>

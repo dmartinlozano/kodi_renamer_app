@@ -1,0 +1,38 @@
+[
+    {
+        "pattern": "\\bS\\d{2}E\\d{2}\\b",
+        "description": "S01E01, S02E10"
+    },
+    {
+      "pattern": "\\b\\d{1,2}x\\d{2}\\b",
+      "description": "1x01, 2x12"
+    },
+    {
+      "pattern": "\\b\\d{2,3}\\b",
+      "description": "01, 101, 203"
+    },
+    {
+      "pattern": "\\b\\d{1,2}-\\d{2}\\b",
+      "description": "1-01, 2-10"
+    },
+    {
+      "pattern": "\\bSeason\\s\\d{1,2}\\sEpisode\\s\\d{1,2}\\b",
+      "description": "Season 1 Episode 1, Season 10 Episode 5"
+    },
+    {
+      "pattern": "\\bEp\\s?\\d{1,2}\\b",
+      "description": "Ep1, Ep10"
+    },
+    {
+      "pattern": "\\b\\d{4}\\b",
+      "description": "0101, 0202"
+    },
+    {
+      "pattern": "\\b\\d{2}_\\d{2}\\b",
+      "description": "01_01, 02_10)"
+    },
+    {
+      "pattern": "\\bS\\d{1,2}-E\\d{1,2}\\b",
+      "description": "S1-E1, S10-E12"
+    }
+]

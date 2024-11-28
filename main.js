@@ -1,11 +1,12 @@
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
-const { KRFile, Type, State } = require('./processer/file.js');
+const { TvShow } = require('./processer/file.js');
 const FileProcesser = require('./processer/fileProcesser.js');
-const { searchMovie, languages } = require('./processer/tmdbClient.js');
-const { extractExtension } = require('./processer/utils.js');
+const { searchMovie, searchTvShow, languages } = require('./processer/tmdbClient.js');
+const { extractExtension, isFolder } = require('./processer/utils.js');
 
 let win;
 var films = [];
+var tvShow;
 
 const BASE_URL = 'https://api.themoviedb.org/3/';
 
@@ -24,29 +25,30 @@ app.whenReady().then(()=>{
   win.webContents.on('did-finish-load', () => win.webContents.send('ready'));
   win.webContents.openDevTools();
 
-  const customMenuTemplate = [{
-      label: 'Settings',
-      submenu: [
-        { label: 'Default Language', click: async () => {
-            const langs = await languages();
-            win.webContents.send('openLanguageModal', langs);
-          }
-        },
-        { type: 'separator' },
-        { label: 'Exit', role: 'quit' },
-      ],
-    }
-  ];
-  const customMenu = Menu.buildFromTemplate(customMenuTemplate);
-  Menu.setApplicationMenu(customMenu);
+  Menu.setApplicationMenu(Menu.buildFromTemplate(
+    [
+      {
+        label: 'Settings',
+        submenu: [
+          { label: 'Default Language', click: async () => {
+              const langs = await languages();
+              win.webContents.send('openLanguageModal', langs);
+            }
+          },
+          { type: 'separator' },
+          { label: 'Exit', role: 'quit' },
+        ]
+      }
+    ]
+  ));
 });
 
 app.on('window-all-closed', () =>  (process.platform !== 'darwin') ? app.quit() : null);
 
-ipcMain.on('addFilm', async (event, newFilms, lang) => {
+ipcMain.on('film:add', async (event, newFilms) => {
   films = films.concat(Array.from(newFilms));
-  films = await FileProcesser.checkFilmsInitialState(films, lang);
-  win.webContents.send('updatedFilms', films);
+  films = await FileProcesser.checkFilmsInitialState(films);
+  win.webContents.send('films:updated', films);
 });
 
 ipcMain.on('languages', async(event)=>{
@@ -54,21 +56,33 @@ ipcMain.on('languages', async(event)=>{
   win.webContents.send('languages', langs);
 });
 
-ipcMain.on('findFilm', async(event, title, year, language, page)=>{
+ipcMain.on('film:find', async(event, title, year, language, page)=>{
   const response = await searchMovie(title, year, language, page);
-  win.webContents.send('findFilm', response);
+  win.webContents.send('film:find', response);
 });
 
-ipcMain.on('foundFilm', async(event, title, year, uuid, id)=>{
-  let indexFound = films.findIndex((film) => film.uuid === uuid);
+ipcMain.on('film:found', async(event, title, year, id)=>{
+  let indexFound = films.findIndex((film) => film.id === id);
   if (indexFound !== -1){
     const extension = extractExtension(films[indexFound].path);
     films[indexFound].nameToRename=`${title} (${year}) {tmdb-${id}}.${extension}`;
   }
-  win.webContents.send('updatedFilms', films);
+  win.webContents.send('films:updated', films);
 });
 
-ipcMain.on('renameAll', async(event)=>{
+ipcMain.on('tvShow:find', async(event, title, year, language, page)=>{
+  const response = await searchTvShow(title, year, language, page);
+  win.webContents.send('film:find', response);
+});
+
+ipcMain.on('tvShow:found', async(event, title, year, id)=>{
+  tvShow.nameToRename=`${title} (${year})`;
+  tvShow.id = id;
+  tvShow.episodes = await FileProcesser.getEpisodes(tvShow.path);
+  win.webContents.send('tvShow:updated', tvShow);
+});
+
+ipcMain.on('films:rename', async(event)=>{
   var errors = [];
   for (let i = 0; i < films.length; i++) {
     if (films[i].state !== State.COMPLETED){
@@ -82,14 +96,24 @@ ipcMain.on('renameAll', async(event)=>{
       }
     }
   }
-  win.webContents.send('updatedFilms', films);
+  win.webContents.send('films:updated', films);
   if (errors.length > 0) win.webContents.send('renameAllErrors', errors);
 });
 
-ipcMain.on('deleteFilm', async(event, uuid)=>{
-  let indexFound = films.findIndex((film) => film.uuid === uuid);
+ipcMain.on('film:delete', async(event, id)=>{
+  let indexFound = films.findIndex((film) => film.id === id);
   if (indexFound !== -1){
     films.splice(indexFound, 1);
-    win.webContents.send('updatedFilms', films);
+    win.webContents.send('films:updated', films);
+  }
+});
+
+ipcMain.on('tvShow:isFolder', async(event, folderPath)=>{
+  const isDirectory = await isFolder(folderPath);
+  if (isDirectory){
+    tvShow = new TvShow(folderPath);
+    tvShow = await FileProcesser.checkTvShowInitialState(tvShow);
+    if (tvShow.nameToRename) tvShow.episodes = await FileProcesser.getEpisodes(tvShow.path);
+    win.webContents.send('tvShow:updated', tvShow);
   }
 });

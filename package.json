@@ -13,7 +13,6 @@
         "dotenv": "^16.4.5",
         "electron": "^33.2.0",
         "tmdb-js": "^1.1.6",
-        "tmdb-js-wrapper": "^1.0.4",
-        "uuid": "^11.0.3"
+        "tmdb-js-wrapper": "^1.0.4"
     }
 }
