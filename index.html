@@ -87,7 +87,7 @@
 
 <body>
     <script src="renderer.js"></script>
-    <script src="languageModal.js"></script>
+    <script src="settingsModal.js"></script>
     <script src="findModal.js"></script>
 
     <div class="tabs is-centered">
@@ -147,12 +147,12 @@
         <div class="modal-background"></div>
         <div class="modal-card">
             <header class="modal-card-head">
-                <p class="modal-card-title">Language Settings</p>
+                <p class="modal-card-title">Settings</p>
                 <button class="delete" aria-label="close" id="closeModal"></button>
             </header>
             <section class="modal-card-body">
                 <div class="field">
-                    <label class="label">Default search language:</label>
+                    <label class="label">Select your language of themoviedb scrapper Kodi:</label>
                     <div class="control">
                         <div class="select is-fullwidth">
                             <select id="languageSelector">
@@ -160,10 +160,16 @@
                         </div>
                     </div>
                 </div>
+                <div class="field">
+                    <label class="checkbox">
+                        <input type="checkbox" id="includeAdult"/>
+                        Include adults content
+                    </label>
+                </div>
             </section>
             <footer class="modal-card-foot">
-                <button class="button is-success" id="saveLanguage">Save</button>
                 <button class="button" id="cancelModal">Cancel</button>
+                <button class="button is-success" id="saveSettingsButton">Save</button>
             </footer>
         </div>
     </div>
@@ -173,23 +179,22 @@
         <div class="modal-content">
           <div class="box">
             <form id="searchForm">
-              <div class="field is-flex">
-                <div class="control is-flex-grow-1">
-                  <input class="input" type="text" id="title" placeholder="Títle" required>
+                <input type="hidden" id="type">
+                <input type="hidden" id="moviePosition">
+                <div class="field is-flex">
+                    <div class="control is-flex-grow-1">
+                        <input class="input" type="text" id="title" placeholder="Títle" required>
+                    </div>
+                    <div class="control" style="width: 5em;">
+                        <input class="input" type="text" id="year" placeholder="Year">
+                    </div>
+                    <div class="control" style="width: 5em;">
+                        <input class="input" type="text" id="mediaModalLangInput" readonly>
+                    </div>
+                    <div class="control">
+                        <button type="submit" class="button is-link">Find</button>
+                    </div>
                 </div>
-                <div class="control" style="width: 5em;">
-                  <input class="input" type="text" id="year" placeholder="Year">
-                </div>
-                <div class="control" style="width: 20em;">
-                  <div class="select is-fullwidth">
-                    <select id="languageSelectorFind" required>
-                    </select>
-                  </div>
-                </div>
-                <div class="control">
-                    <button type="submit" class="button is-link">Find</button>
-                </div>
-              </div>
             </form>
             <div id="findResults" class="mt-5"></div>
             <nav class="pagination is-centered" id="pagination" role="navigation" aria-label="pagination"></nav>
@@ -197,32 +202,5 @@
           </div>
         </div>
       </div>
-      
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const e = document.querySelectorAll(".tabs");
-            void 0 !== e && e.forEach(e => {
-                e.children[0].addEventListener("click", e => {
-                    var node = e.target;
-                    var nodename = '';
-                    while (node.localName != "ul") {
-                        if (node.localName == "a") nodename = node.innerText;
-                        node = node.parentNode;
-                    }
-                    var a = 0;
-                    Array.from(node.children).forEach(function (n) {
-                        n.classList.remove("is-active"),
-                            a++,
-                            node.parentNode.children[1].children[a - 1].style.display = "none",
-                            nodename == n.children[0].innerText && (n.classList.add("is-active"),
-                                node.parentNode.children[1].children[a - 1].style.display = "block")
-                    })
-
-                })
-            })
-        });
-    </script>
-</body>
-
+    </body>
 </html>

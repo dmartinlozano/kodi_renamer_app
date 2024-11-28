@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { searchMovie, searchTvShow } = require('./tmdbClient.js');
-const { State } = require('./file.js');
+const { State } = require('../dto/file.js');
 const {extractNameWithoutExtension, extractYear, clearFileName,extractExtension} = require('./utils.js');
 const path = require('path');
 const fs = require('fs').promises;
@@ -15,9 +15,18 @@ class FileProcesser{
                 films[i].suggestedTitle = clearFileName(nameWithoutExtension);
                 films[i].suggestedYear = extractYear(nameWithoutExtension);
                 try {
-                    const response = await searchMovie(films[i].suggestedTitle, films[i].suggestedYear, lang, 1);
-                    if (response && response.total_results && response.total_results !== 0 && year){
-                        const filtered = response.results.filter(movie => movie.release_date.startsWith(year));
+                    const response = await searchMovie(
+                        films[i].suggestedTitle, 
+                        films[i].suggestedYear,
+                        1
+                    );
+                    if (response && response.total_results && response.total_results === 1){
+                        const year = response.results[0].release_date.split("-")[0];
+                        films[i].id = response.results[0].id;
+                        films[i].nameToRename = `${response.results[0].title} (${year}) {tmdb-${response.results[0].id}}.${extension}`;
+                        films[i].suggestedTmdbTitles = [];
+                    }else if (response && response.total_results && response.total_results !== 0 && films[i].suggestedYear){
+                        const filtered = response.results.filter(movie => movie.release_date.startsWith(films[i].suggestedYear));
                         if (filtered.length === 1){
                             films[i].id = filtered[0].id;
                             films[i].nameToRename = `${filtered[0].title} (${year}) {tmdb-${filtered[0].id}}.${extension}`;

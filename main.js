@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
-const { TvShow } = require('./processer/file.js');
+const { TvShow } = require('./dto/file.js');
 const FileProcesser = require('./processer/fileProcesser.js');
 const { searchMovie, searchTvShow, languages } = require('./processer/tmdbClient.js');
 const { extractExtension, isFolder } = require('./processer/utils.js');
@@ -7,18 +7,17 @@ const { extractExtension, isFolder } = require('./processer/utils.js');
 let win;
 var films = [];
 var tvShow;
+global.settings = {};
 
 const BASE_URL = 'https://api.themoviedb.org/3/';
 
 app.whenReady().then(()=>{
-  const locale = app.getLocale();
   win = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false,
-      additionalArguments: [`--locale=${locale}`]
+      contextIsolation: false
     },
   });
   win.loadFile('index.html');
@@ -30,10 +29,7 @@ app.whenReady().then(()=>{
       {
         label: 'Settings',
         submenu: [
-          { label: 'Default Language', click: async () => {
-              const langs = await languages();
-              win.webContents.send('openLanguageModal', langs);
-            }
+          { label: 'Settings', click: async () => win.webContents.send('openSettingsModal')
           },
           { type: 'separator' },
           { label: 'Exit', role: 'quit' },
@@ -45,39 +41,40 @@ app.whenReady().then(()=>{
 
 app.on('window-all-closed', () =>  (process.platform !== 'darwin') ? app.quit() : null);
 
+ipcMain.on('languages', async(event)=>{
+  const langs = await languages();
+  win.webContents.send('languages', langs);
+});
+
+ipcMain.on('settings:get', async(event, newSettings)=>{
+  global.settings = newSettings;
+});
+
 ipcMain.on('film:add', async (event, newFilms) => {
   films = films.concat(Array.from(newFilms));
   films = await FileProcesser.checkFilmsInitialState(films);
   win.webContents.send('films:updated', films);
 });
 
-ipcMain.on('languages', async(event)=>{
-  const langs = await languages();
-  win.webContents.send('languages', langs);
+ipcMain.on('film:find', async(event, title, year, page)=>{
+  const response = await searchMovie(title, year, page);
+  win.webContents.send('media:response', response);
 });
 
-ipcMain.on('film:find', async(event, title, year, language, page)=>{
-  const response = await searchMovie(title, year, language, page);
-  win.webContents.send('film:find', response);
-});
-
-ipcMain.on('film:found', async(event, title, year, id)=>{
-  let indexFound = films.findIndex((film) => film.id === id);
-  if (indexFound !== -1){
-    const extension = extractExtension(films[indexFound].path);
-    films[indexFound].nameToRename=`${title} (${year}) {tmdb-${id}}.${extension}`;
-  }
+ipcMain.on('film:found', async(event, title, year, id, moviePosition)=>{
+  const extension = extractExtension(films[moviePosition].path);
+  films[moviePosition].id = id;
+  films[moviePosition].nameToRename=`${title} (${year}) {tmdb-${id}}.${extension}`;
   win.webContents.send('films:updated', films);
 });
 
-ipcMain.on('tvShow:find', async(event, title, year, language, page)=>{
-  const response = await searchTvShow(title, year, language, page);
-  win.webContents.send('film:find', response);
+ipcMain.on('tvShow:find', async(event, title, year, page)=>{
+  const response = await searchTvShow(title, year, page);
+  win.webContents.send('media:response', response);
 });
 
-ipcMain.on('tvShow:found', async(event, title, year, id)=>{
+ipcMain.on('tvShow:found', async(event, title, year)=>{
   tvShow.nameToRename=`${title} (${year})`;
-  tvShow.id = id;
   tvShow.episodes = await FileProcesser.getEpisodes(tvShow.path);
   win.webContents.send('tvShow:updated', tvShow);
 });

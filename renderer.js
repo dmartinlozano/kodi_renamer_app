@@ -1,7 +1,45 @@
 const { ipcRenderer, webUtils } = require('electron');
-const { Movie, State } = require('./processer/file.js');
+const { Movie, State } = require('./dto/file.js');
+const { Settings } = require('./dto/settings.js');
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    //TABS:
+    const e = document.querySelectorAll(".tabs");
+    void 0 !== e && e.forEach(e => {
+        e.children[0].addEventListener("click", e => {
+            var node = e.target;
+            var nodename = '';
+            while (node.localName != "ul") {
+                if (node.localName == "a") nodename = node.innerText;
+                node = node.parentNode;
+            }
+            var a = 0;
+            Array.from(node.children).forEach(function (n) {
+                n.classList.remove("is-active"),
+                    a++,
+                    node.parentNode.children[1].children[a - 1].style.display = "none",
+                    nodename == n.children[0].innerText && (n.classList.add("is-active"),
+                        node.parentNode.children[1].children[a - 1].style.display = "block")
+            })
+
+        })
+    });
+
+    //SETTINGS:
+    const lang = localStorage.getItem('lang');
+    if (lang){
+        ipcRenderer.send('settings:get',
+            new Settings(
+                localStorage.getItem("lang"),
+                localStorage.getItem("includeAdult")
+            )
+        );
+    }else{
+        openSettingsModal();
+    }
+
+    //DRAG & DROP:
 
     const filmsDropArea = document.getElementById('filmsDropArea');
     const tvShowDropArea = document.getElementById('tvShowDropArea');
@@ -36,10 +74,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    document.getElementById('renameFilmsButton').addEventListener('click', () => {
+        ipcRenderer.send('films:rename');
+    });
+
+    //ipcRenderer
+
     ipcRenderer.on('films:updated', (event, films) => {
         let tableBody = document.getElementById('filmsList');
         tableBody.innerHTML = '';
-        Array.from(films).forEach((film) => {
+        Array.from(films).forEach((film, index) => {
             const row = document.createElement('tr');
             row.classList.add('has-text-left');
 
@@ -64,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 findButton.textContent = 'Find';
                 findButton.classList.add('button', 'is-primary');
                 findButton.style.marginLeft = '10px'; 
-                findButton.addEventListener('click', () => openFindModal('FILMS', film.suggestedTitle, film.suggestedYear, film.id));
+                findButton.addEventListener('click', () => openFindModal('FILMS', film.suggestedTitle, film.suggestedYear, index));
                 stateCell.appendChild(findButton);
 
                 let deleteButton = document.createElement('button');
@@ -116,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             findButton.textContent = 'Find';
             findButton.classList.add('button', 'is-primary');
             findButton.style.marginLeft = '10px'; 
-            findButton.addEventListener('click', () => openFindModal('TV_SHOW', tvShow.suggestedTitle, tvShow.suggestedYear, tvShow.id));
+            findButton.addEventListener('click', () => openFindModal('TV_SHOW', tvShow.suggestedTitle, tvShow.suggestedYear));
             stateCell.appendChild(findButton);
         }
         if (tvShow.state === State.COMPLETED){
@@ -144,16 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    ipcRenderer.on('openLanguageModal', (event, languages) => {
-        openLanguageModal(languages); 
-    });
+    ipcRenderer.on('openSettingsModal', () => openSettingsModal());
 
-    document.getElementById('renameFilmsButton').addEventListener('click', () => {
-        ipcRenderer.send('films:rename');
-    });
-
-    const deleteFilm = (id) => {
-        ipcRenderer.send('film:delete', id);
-    };
+    const deleteFilm = (id) => ipcRenderer.send('film:delete', id);
 
 });

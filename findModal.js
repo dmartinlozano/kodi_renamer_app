@@ -1,44 +1,37 @@
-function openFindModal(type, title, year, id){
+function openFindModal(type, title, year, moviePosition){
+
     const modal = document.getElementById('movieModal');
-    const languageSelector = document.getElementById('languageSelectorFind');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const searchForm = document.getElementById('searchForm');
+    const mediaModalLangInput = document.getElementById('mediaModalLangInput');
     const findResults = document.getElementById('findResults');
     const pagination = document.getElementById('pagination');
 
+    document.getElementById('moviePosition').value = moviePosition;
+    document.getElementById('type').value = type;
+
     const openModal = () => {
-      ipcRenderer.send('languages');
       findResults.innerHTML = '';
       document.getElementById('title').value = title;
       document.getElementById('year').value = (year) ? year : "";
+      document.getElementById('mediaModalLangInput').value = localStorage.getItem('lang').toLocaleUpperCase();
       modal.classList.add('is-active');
     }
 
     closeModalBtn.addEventListener('click', () =>  modal.classList.remove('is-active'));
 
-    ipcRenderer.on('languages', (event, langs)=>{
-      langs.forEach(lang => {
-          const option = document.createElement('option');
-          option.value = lang.iso_639_1;
-          option.textContent = lang.english_name; 
-          languageSelector.appendChild(option);
-      });
-      languageSelector.value = localStorage.getItem('defaultLanguage') || systemLocale || 'en';
-    });
-
     searchForm.addEventListener('submit', function(event) {
       event.preventDefault();
       const title = document.getElementById('title').value;
       const year = document.getElementById('year').value || null;
-      const language = document.getElementById('languageSelectorFind').value;
-      if (type === 'FILMS'){
-        ipcRenderer.send('film:find', title, year, language, 1);
+      if (document.getElementById('type').value === 'FILMS'){
+        ipcRenderer.send('film:find', title, year, 1);
       }else{
-        ipcRenderer.send('tvShow:find', title, year, language, 1);
+        ipcRenderer.send('tvShow:find', title, year, 1);
       }
     });
 
-    ipcRenderer.on('film:find', (event, response)=>{
+    ipcRenderer.on('media:response', (event, response)=>{
       findResults.innerHTML = '';
       if (response.total_results === 0) {
         findResults.innerHTML = '<p>No movies/tvshows match your search</p>';
@@ -47,7 +40,7 @@ function openFindModal(type, title, year, id){
         response.results.forEach(media => {
             const releaseYear = media.release_date ? media.release_date.split('-')[0] : media.first_air_date ? media.first_air_date.split('-')[0] : 'Unknown';
             const title = media.title ? media.title : media.name ? media.name : 'Unknown';
-            const movieElement = `
+            const mediaElement = `
               <div class="columns is-multiline">
                 <div class="column is-one-quarter">
                   <figure class="image">
@@ -66,23 +59,25 @@ function openFindModal(type, title, year, id){
                 </div>
               </div>
             `;
-            findResults.innerHTML += movieElement;
+            findResults.innerHTML += mediaElement;
         });
       }
     });
 
     document.addEventListener('click', function(event) {
       if (event.target && event.target.matches('a.movie-link')) {
+
         event.preventDefault();
         const modal = document.getElementById('movieModal');
         modal.classList.remove('is-active');
         const title = event.target.getAttribute('data-title');
         const year = event.target.getAttribute('data-year');
         const id = event.target.getAttribute('data-id');
-        if (type === 'FILMS'){
-          ipcRenderer.send('film:found', title, year, id);
+
+        if (document.getElementById('type').value === 'FILMS'){
+          ipcRenderer.send('film:found', title, year, id, document.getElementById('moviePosition').value);
         }else{
-          ipcRenderer.send('tvShow:found', title, year, id);
+          ipcRenderer.send('tvShow:found', title, year);
         }
         modal.classList.remove('is-active');
       }
@@ -103,7 +98,6 @@ function openFindModal(type, title, year, id){
               'film:find', 
               document.getElementById('title').value, 
               document.getElementById('year').value, 
-              document.getElementById('languageSelectorFind').value, 
               page);
         });
       });
@@ -111,5 +105,3 @@ function openFindModal(type, title, year, id){
     
     openModal();
 }
-
-module.exports = { openFindModal };
