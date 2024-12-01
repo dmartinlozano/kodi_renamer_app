@@ -1,5 +1,7 @@
 const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs');
+const { Episode } = require('../dto/file');
+const patterns = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'episodes_template.json'), 'utf8'));
 
 const extractNameWithoutExtension = (filePath) => path.parse(path.basename(filePath)).name;
 const extractExtension = (filePath) => {
@@ -18,13 +20,34 @@ const clearFileName = (fileName) => fileName
         .replace(/[\u0300-\u036f]/g, '')
         .trim();
 
-const isFolder = async (filePath) => {
+const isFolder = (filePath) => {
     try {
-        const stats = await fs.stat(filePath);
-        return stats.isDirectory();
+        return fs.statSync(filePath).isDirectory();
     } catch (error) {
         return false;
     }
+}
+
+function extractSeasonAndEpisode(fileName) {
+    for (const { pattern, description } of patterns) {
+        const regex = new RegExp(pattern);
+        const match = regex.exec(fileName);
+        if (match) {
+            const groups = match.groups;
+            if (groups?.season && groups?.episode) {
+                return new Episode(fileName, parseInt(groups.season, 10), parseInt(groups.episode, 10), pattern);
+            }
+            const numbers = match[0].match(/\d+/g);
+            if (numbers) {
+                if (numbers.length === 2) {
+                    return new Episode(fileName, parseInt(numbers[0], 10), parseInt(numbers[1], 10), pattern);
+                } else if (numbers.length === 1) {
+                    return new Episode(fileName, Math.floor(numbers[0] / 100), numbers[0] % 100, pattern);
+                }
+            }
+        }
+    }
+    return new Episode(fileName);
 }
 
 module.exports = {
@@ -32,5 +55,6 @@ module.exports = {
     extractYear,
     clearFileName,
     extractExtension,
-    isFolder
+    isFolder,
+    extractSeasonAndEpisode
 }

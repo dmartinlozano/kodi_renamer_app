@@ -1,8 +1,9 @@
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const path = require('path');
 const { TvShow } = require('./dto/file.js');
 const FileProcesser = require('./processer/fileProcesser.js');
 const { searchMovie, searchTvShow, languages } = require('./processer/tmdbClient.js');
-const { extractExtension, isFolder } = require('./processer/utils.js');
+const { isFolder, extractNameWithoutExtension, extractExtension } = require('./processer/utils.js');
 
 let win;
 var films = [];
@@ -75,16 +76,16 @@ ipcMain.on('tvShow:find', async(event, title, year, page)=>{
 
 ipcMain.on('tvShow:found', async(event, title, year)=>{
   tvShow.nameToRename=`${title} (${year})`;
-  tvShow.episodes = await FileProcesser.getEpisodes(tvShow.path);
+  tvShow = await FileProcesser.getEpisodes(tvShow, tvShow.path);
   win.webContents.send('tvShow:updated', tvShow);
 });
 
-ipcMain.on('films:rename', async(event)=>{
+ipcMain.on('films:rename', (event)=>{
   var errors = [];
   for (let i = 0; i < films.length; i++) {
     if (films[i].state !== State.COMPLETED){
       try{
-        await FileProcesser.rename(films[i]);
+        FileProcesser.renameFilm(films[i]);
         films[i].state = State.COMPLETED;
       }catch(e){
         console.error(e);
@@ -106,11 +107,44 @@ ipcMain.on('film:delete', async(event, id)=>{
 });
 
 ipcMain.on('tvShow:isFolder', async(event, folderPath)=>{
-  const isDirectory = await isFolder(folderPath);
+  const isDirectory = isFolder(folderPath);
   if (isDirectory){
     tvShow = new TvShow(folderPath);
     tvShow = await FileProcesser.checkTvShowInitialState(tvShow);
-    if (tvShow.nameToRename) tvShow.episodes = await FileProcesser.getEpisodes(tvShow.path);
+    if (tvShow.nameToRename) tvShow = await FileProcesser.getEpisodes(tvShow, tvShow.path);
     win.webContents.send('tvShow:updated', tvShow);
   }
+});
+
+ipcMain.on('tvShow:rename', (event, episodesInput)=>{
+  var errors = [];
+  const groupedInputs = episodesInput.reduce((acc, input) => {
+    if (!acc[input.index]) acc[input.index] = {};
+    acc[input.index][input.type] = input.value; // Store 'season' or 'episode' with the value
+    return acc;
+}, {});
+tvShow.episodes.forEach((episode, index) => {
+  const inputData = groupedInputs[index];
+  if (inputData) {
+    const season = inputData.season || episode.season;
+    const episodeNum = inputData.episode || episode.episode;
+    const formattedSeason = season.toString().padStart(2, '0');
+    const formattedEpisode = episodeNum.toString().padStart(2, '0');
+    const match = episode.path.match(new RegExp(episode.patternFound));
+    if (match) {
+      episode.pathToRename = episode.path.replace(
+        match[0],
+        `S${formattedSeason}E${formattedEpisode}`
+      );
+      console.log(episode.pathToRename);
+    }else{
+      const nameWithoutExtension = extractNameWithoutExtension(episode.path);
+      const extension = extractExtension(episode.path);
+      episode.pathToRename = `${nameWithoutExtension}.S${formattedSeason}E${formattedEpisode}.${extension}`;
+    }
+  }
+});
+FileProcesser.renameEpisodes(tvShow.episodes);
+win.webContents.send('tvShow:updated', tvShow);
+  if (errors.length > 0) win.webContents.send('renameAllErrors', errors);
 });

@@ -1,9 +1,13 @@
 require('dotenv').config();
 const { searchMovie, searchTvShow } = require('./tmdbClient.js');
 const { State } = require('../dto/file.js');
-const {extractNameWithoutExtension, extractYear, clearFileName,extractExtension} = require('./utils.js');
+const { extractNameWithoutExtension, 
+        extractYear, 
+        clearFileName,
+        extractExtension, 
+        extractSeasonAndEpisode } = require('./utils.js');
 const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs');
 
 class FileProcesser{
 
@@ -65,28 +69,38 @@ class FileProcesser{
         return tvShow;
     }
 
-    static async getEpisodes(tvShowPath){
-        let files = [];
+    static async getEpisodes(tvShow, fullPath) {
         try {
-            const entries = await fs.readdir(tvShowPath, { withFileTypes: true });
-            for (const entry of entries) {
-                const fullPath = path.join(tvShowPath, entry.name);
+            const entries = await fs.promises.readdir(fullPath, { withFileTypes: true });
+            await Promise.all(entries.map(async (entry) => {
+                const entryFullPath = path.join(fullPath, entry.name);
                 if (entry.isDirectory()) {
-                    const subFiles = await getEpisodes(fullPath);
-                    files = files.concat(subFiles);
+                    await this.getEpisodes(tvShow, entryFullPath);
                 } else if (entry.isFile()) {
-                    files.push(fullPath);
+                    tvShow.episodes.push(extractSeasonAndEpisode(entryFullPath));
                 }
-            }
+            }));
         } catch (error) {
             console.error(error);
         }
-        return files;
+        return tvShow;
     }
 
-    static async rename(film){
+    static renameFilm(film){
         const directory = path.dirname(film.path);
-        await fs.rename(film.path, `${directory}/${film.nameToRename}`);
+        fs.renameSync(film.path, `${directory}/${film.nameToRename}`);
+    }
+
+    static renameEpisodes(episodes){
+        episodes.forEach((episode)=>{
+            if (episode.pathToRename){
+                try{
+                    fs.renameSync(episode.path, episode.pathToRename);
+                }catch(e){
+                    console.error(e);
+                }
+            }
+        })
     }
 }
 

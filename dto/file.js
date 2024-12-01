@@ -19,9 +19,19 @@ class Movie extends Media{
     suggestedTmdbTitles = [];
 }
 
+class Episode{
+    pathToRename;
+    constructor(path, season, episode, patternFound){
+        this.path = path;
+        this.season = season;
+        this.episode = episode;
+        this.patternFound = patternFound; //ie: 1x02. To use be replaced by S0102
+    }
+}
+
 class TvShow extends Media{
     episodes = []; //list of files paths -tvShow-
     seasons = []; //tmdb sessions data
 }
   
-module.exports = { Movie, TvShow, State };
+module.exports = { Movie, TvShow, Episode, State };

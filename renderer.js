@@ -78,6 +78,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ipcRenderer.send('films:rename');
     });
 
+    document.getElementById('renameTvShowsButton').addEventListener('click', () => {
+        const inputs = Array.from(document.querySelectorAll('#episodesList input'));
+        let results = inputs.map((input)=>({
+            index: parseInt(input.dataset.index, 10),
+            type: input.dataset.type, //'season' - 'episode',
+            value: parseInt(input.value, 10)
+        }));
+        ipcRenderer.send('tvShow:rename', results);
+    });
+
     //ipcRenderer
 
     ipcRenderer.on('films:updated', (event, films) => {
@@ -131,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     ipcRenderer.on('tvShow:updated', (event, tvShow) => {
-
         //tv show table
 
         let tvShowTableBody = document.getElementById('tvShowList');
@@ -181,9 +190,37 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i=0; i<tvShow.episodes.length; i++){
             row = document.createElement('tr');
             row.classList.add('has-text-left');
+
             const nameCell = document.createElement('td');
-            nameCell.textContent = tvShow.episodes[i].split('/').pop();
+            nameCell.textContent = tvShow.episodes[i].path.split('/').pop();
             row.appendChild(nameCell);
+
+            const sessionCell = document.createElement('td');
+            const sessionInput = document.createElement('input');
+            sessionInput.type = 'number';
+            sessionInput.value = tvShow.episodes[i].season;
+            sessionInput.max = 999;
+            sessionInput.min = 1;
+            sessionInput.maxLength = 3;
+            sessionInput.classList.add('input', 'is-small');
+            sessionInput.dataset.index = i
+            sessionInput.dataset.type = 'season';
+            sessionCell.appendChild(sessionInput);
+            row.appendChild(sessionCell);
+
+            const episodeCell = document.createElement('td');
+            const episodeInput = document.createElement('input');
+            episodeInput.type = 'number';
+            episodeInput.value = tvShow.episodes[i].episode;
+            episodeInput.max = 999;
+            episodeInput.min = 1;
+            episodeInput.maxLength = 3;
+            episodeInput.classList.add('input', 'is-small');
+            episodeInput.dataset.index = i;
+            episodeInput.dataset.type = 'episode';
+            episodeCell.appendChild(episodeInput);
+            row.appendChild(episodeCell);
+
             episodesTableBody.appendChild(row);
         }
     });
