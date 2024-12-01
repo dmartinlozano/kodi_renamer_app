@@ -38,8 +38,8 @@ class FileProcesser{
                         films[i].suggestedTmdbTitles = response.results;
                     }
                     films[i].state = State.FOUND_DONE;
-                } catch (error) {
-                    console.error(error);
+                } catch (e) {
+                    global.win.webContents.send('errorNotification:show', e.message);
                     continue;
                 }
             }
@@ -63,8 +63,8 @@ class FileProcesser{
             }
             tvShow.suggestedTitle = folderNameCleaned;
             tvShow.state = State.FOUND_DONE;
-        } catch (error) {
-            console.error(error);
+        } catch (e) {
+            global.win.webContents.send('errorNotification:show', e.message);
         }
         return tvShow;
     }
@@ -80,8 +80,8 @@ class FileProcesser{
                     tvShow.episodes.push(extractSeasonAndEpisode(entryFullPath));
                 }
             }));
-        } catch (error) {
-            console.error(error);
+        } catch (e) {
+            global.win.webContents.send('errorNotification:show', e.message);
         }
         return tvShow;
     }
@@ -97,7 +97,7 @@ class FileProcesser{
                 try{
                     fs.renameSync(episode.path, episode.pathToRename);
                 }catch(e){
-                    console.error(e);
+                    global.win.webContents.send('errorNotification:show', e.message);
                 }
             }
         })

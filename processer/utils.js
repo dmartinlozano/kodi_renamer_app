@@ -23,7 +23,8 @@ const clearFileName = (fileName) => fileName
 const isFolder = (filePath) => {
     try {
         return fs.statSync(filePath).isDirectory();
-    } catch (error) {
+    } catch (e) {
+        global.win.webContents.send('errorNotification:show', e.message);
         return false;
     }
 }

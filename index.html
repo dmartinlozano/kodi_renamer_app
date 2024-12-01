@@ -89,6 +89,13 @@
     <script src="renderer.js"></script>
     <script src="settingsModal.js"></script>
     <script src="findModal.js"></script>
+    <script src="errorModal.js"></script>
+
+    <!--notificacion ok-->
+    <div id="notificationOkDiv" class="notification is-success is-hidden">
+        <button class="delete" onclick="hideOKNotification('notificationOkDiv')"></button>
+        <span id="notificationText"></span>
+    </div>
 
     <div class="tabs is-centered">
         <ul>
@@ -201,6 +208,24 @@
             <button class="delete" id="closeModalBtn"></button>
           </div>
         </div>
-      </div>
-    </body>
+    </div>
+
+    <!-- error modal -->
+    <div class="modal" id="errorModal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Error Details</p>
+            <button class="delete" aria-label="close" id="closeErrorModal"></button>
+        </header>
+        <section class="modal-card-body">
+            <textarea class="textarea" id="errorDetails" readonly></textarea>
+        </section>
+        <footer class="modal-card-foot">
+            <button class="button is-danger" id="closeErrorButton">Close</button>
+        </footer>
+        </div>
+    </div>
+  
+</body>
 </html>
