@@ -24,6 +24,7 @@ app.whenReady().then(()=>{
   win.loadFile('index.html');
   win.webContents.on('did-finish-load', () => win.webContents.send('ready'));
   win.webContents.openDevTools();
+  global.win = win;
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(
     [
@@ -81,21 +82,19 @@ ipcMain.on('tvShow:found', async(event, title, year)=>{
 });
 
 ipcMain.on('films:rename', (event)=>{
-  var errors = [];
   for (let i = 0; i < films.length; i++) {
     if (films[i].state !== State.COMPLETED){
       try{
         FileProcesser.renameFilm(films[i]);
         films[i].state = State.COMPLETED;
+        win.webContents.send('okNotification:show', 'The files has been renamed');
       }catch(e){
-        console.error(e);
-        errors.push(e);
+        win.webContents.send('errorNotification:show', e.message);
         continue;
       }
     }
   }
   win.webContents.send('films:updated', films);
-  if (errors.length > 0) win.webContents.send('renameAllErrors', errors);
 });
 
 ipcMain.on('film:delete', async(event, id)=>{
@@ -117,34 +116,43 @@ ipcMain.on('tvShow:isFolder', async(event, folderPath)=>{
 });
 
 ipcMain.on('tvShow:rename', (event, episodesInput)=>{
-  var errors = [];
   const groupedInputs = episodesInput.reduce((acc, input) => {
     if (!acc[input.index]) acc[input.index] = {};
     acc[input.index][input.type] = input.value; // Store 'season' or 'episode' with the value
     return acc;
-}, {});
-tvShow.episodes.forEach((episode, index) => {
-  const inputData = groupedInputs[index];
-  if (inputData) {
-    const season = inputData.season || episode.season;
-    const episodeNum = inputData.episode || episode.episode;
-    const formattedSeason = season.toString().padStart(2, '0');
-    const formattedEpisode = episodeNum.toString().padStart(2, '0');
-    const match = episode.path.match(new RegExp(episode.patternFound));
-    if (match) {
-      episode.pathToRename = episode.path.replace(
-        match[0],
-        `S${formattedSeason}E${formattedEpisode}`
-      );
-      console.log(episode.pathToRename);
-    }else{
-      const nameWithoutExtension = extractNameWithoutExtension(episode.path);
-      const extension = extractExtension(episode.path);
-      episode.pathToRename = `${nameWithoutExtension}.S${formattedSeason}E${formattedEpisode}.${extension}`;
+  }, {});
+  tvShow.episodes.forEach((episode, index) => {
+    const inputData = groupedInputs[index];
+    if (inputData) {
+      const season = inputData.season || episode.season;
+      const episodeNum = inputData.episode || episode.episode;
+      if (!isNaN(season) && !isNaN(episodeNum)){
+        const formattedSeason = season.toString().padStart(2, '0');
+        const formattedEpisode = episodeNum.toString().padStart(2, '0');
+        const match = episode.path.match(new RegExp(episode.patternFound));
+        if (match) {
+          episode.pathToRename = episode.path.replace(
+            match[0],
+            `S${formattedSeason}E${formattedEpisode}`
+          );
+        }else{
+          const nameWithoutExtension = extractNameWithoutExtension(episode.path);
+          const extension = extractExtension(episode.path);
+          episode.pathToRename = `${nameWithoutExtension}.S${formattedSeason}E${formattedEpisode}.${extension}`;
+        }
+      }
     }
+  });
+  try{
+    FileProcesser.renameEpisodes(tvShow.episodes);
+    win.webContents.send('tvShow:updated', tvShow);
+    win.webContents.send('okNotification:show', 'The files has been renamed');
+  }catch(e){
+    win.webContents.send('errorNotification:show', e.message);
   }
 });
-FileProcesser.renameEpisodes(tvShow.episodes);
-win.webContents.send('tvShow:updated', tvShow);
-  if (errors.length > 0) win.webContents.send('renameAllErrors', errors);
+
+ipcMain.on('tvShow:delete', async(event, index)=>{
+  tvShow.episodes.splice(index, 1);
+  win.webContents.send('tvShow:updated', tvShow);
 });

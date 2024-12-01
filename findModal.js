@@ -3,7 +3,6 @@ function openFindModal(type, title, year, moviePosition){
     const modal = document.getElementById('movieModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const searchForm = document.getElementById('searchForm');
-    const mediaModalLangInput = document.getElementById('mediaModalLangInput');
     const findResults = document.getElementById('findResults');
     const pagination = document.getElementById('pagination');
 

@@ -221,6 +221,14 @@ document.addEventListener('DOMContentLoaded', () => {
             episodeCell.appendChild(episodeInput);
             row.appendChild(episodeCell);
 
+            let deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Remove';
+            deleteButton.classList.add('button', 'is-danger');
+            deleteButton.style.marginLeft = '10px'; 
+            deleteButton.addEventListener('click', () => deleteTvShow(i));
+            stateCell.appendChild(deleteButton);
+            row.appendChild(deleteButton);
+
             episodesTableBody.appendChild(row);
         }
     });
@@ -228,5 +236,17 @@ document.addEventListener('DOMContentLoaded', () => {
     ipcRenderer.on('openSettingsModal', () => openSettingsModal());
 
     const deleteFilm = (id) => ipcRenderer.send('film:delete', id);
+    const deleteTvShow = (index) => ipcRenderer.send('tvShow:delete', index);
+    const hideOKNotification = (id) => document.getElementById(id).classList.add('is-hidden');
+
+    ipcRenderer.on('okNotification:show', (event, message) => {
+        const notification = document.getElementById('notificationOkDiv');
+        const notificationText = document.getElementById('notificationText');
+        if (notification && notificationText) {
+            notificationText.textContent = message;
+            notification.classList.remove('is-hidden');
+            setTimeout(() => notification.classList.add('is-hidden'), 3000);
+        }
+    });
 
 });
