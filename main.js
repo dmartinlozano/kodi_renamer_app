@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron');
 const { TvShow, State } = require('./dto/file.js');
 const FileProcesser = require('./processer/fileProcesser.js');
 const { searchMovie, searchTvShow, languages } = require('./processer/tmdbClient.js');
@@ -28,8 +28,8 @@ app.whenReady().then(()=>{
       {
         label: 'Settings',
         submenu: [
-          { label: 'Settings', click: async () => win.webContents.send('openSettingsModal')
-          },
+          { label: 'Settings', click: async () => win.webContents.send('openSettingsModal')},
+          { label: 'Donate', click: async () => shell.openExternal('https://buymeacoffee.com/kodi_renamer')},
           { type: 'separator' },
           { label: 'Exit', role: 'quit' },
         ]
