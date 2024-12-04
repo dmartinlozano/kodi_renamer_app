@@ -5,7 +5,7 @@ import fs from 'fs';
 describe('TvShows', () => {
 
     const tvShowPath = './tests/tmp/South Park/';
-    const tvShowEpisodidesPaths = [
+    const tvShowEpisodesPaths = [
         './tests/tmp/South Park/Temporada1/South Park 1x03.mkv',
         './tests/tmp/South Park/Temporada2/South Park 2x10.mkv',
         './tests/tmp/South Park/South Park 4x05.mkv',
@@ -60,7 +60,7 @@ describe('TvShows', () => {
         if (fs.existsSync(path.dirname(tvShowFolder))) fs.rmSync(tvShowFolder, { recursive: true });
         fs.mkdirSync(tvShowFolder, { recursive: true }); 
 
-        for (const filePath of tvShowEpisodidesPaths) {
+        for (const filePath of tvShowEpisodesPaths) {
             const file = path.resolve(filePath);
             if (!fs.existsSync(path.dirname(file))) fs.mkdirSync(path.dirname(file), { recursive: true });    
             if (!fs.existsSync(file))fs.writeFileSync(file, '');
@@ -191,6 +191,20 @@ describe('TvShows', () => {
     });
 
     it('rename button', async () => {
+        
+        const episodesTable = await $('#episodesList');  
+        const rows = await episodesTable.$$('tr');
+        const episodesRenamed = [];
+
+        for (let i = 0; i < rows.length; i++) {
+            const firstRowCells = await rows[i].$$('td');
+            const firstCellText = await firstRowCells[0].getText();
+            if (!tvShowEpisodesPaths.includes(firstCellText)) {
+                episodesRenamed.push(firstCellText);
+            }
+        }
+
+        //rename button
         const removeButton = await $('#renameTvShowsButton');   
         removeButton.click();
         await browser.pause(5000);
@@ -199,17 +213,18 @@ describe('TvShows', () => {
         const text = await checkDiv.getText();
         expect(text).toBe('✅');
 
-        let filePath = path.resolve('./tests/tmp/South Park/South Park S04E05.mkv');
-        let fileExists = fs.existsSync(filePath);
-        expect(fileExists).toBe(true);
-
-        filePath = path.resolve('./tests/tmp/South Park/Temporada1/South Park 1x03.mkv');
-        fileExists = fs.existsSync(filePath);
-        expect(fileExists).toBe(true);
-
-        filePath = path.resolve('./tests/tmp/South Park/Temporada2/South Park S02E10.mkv'); //not change, it is ok: it was removed
-        fileExists = fs.existsSync(filePath);
-        expect(fileExists).toBe(true);
+        for (let originalPath of tvShowEpisodesPaths) {
+            const fileName = path.basename(originalPath);
+            const isRenamed = episodesRenamed.includes(fileName);
+            const updatedFileName = isRenamed
+                ? fileName.replace(/(\d+)x(\d+)/, (_, season, episode) => {
+                    return `S${season.padStart(2, '0')}E${episode.padStart(2, '0')}`;
+                })
+                : fileName;
+            const expectedPath = path.resolve(originalPath.replace(fileName, updatedFileName));
+            const fileExists = fs.existsSync(expectedPath);
+            expect(fileExists).toBe(true);
+        }        
     });
 
 });

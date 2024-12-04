@@ -14,7 +14,6 @@
         "build": "electron-builder"
     },
     "dependencies": {
-        "@electron-forge/publisher-github": "^7.6.0",
         "axios": "^1.7.7",
         "dotenv": "^16.4.5",
         "tmdb-js": "^1.1.6",
@@ -40,11 +39,10 @@
             "output": "dist",
             "buildResources": "assets"
         },
-        "files": [
-            "build/**/*",
-            "main.js",
-            "package.json"
-        ],
+        "publish": {
+            "provider": "github",
+            "releaseType": "release"
+        },
         "mac": {
             "target": "dmg",
             "icon": "assets/kodi_renamer_icon.icns",
@@ -64,25 +62,5 @@
             ],
             "icon": "assets/kodi_renamer_icon.png"
         }
-    },
-    "config": {
-        "forge": {
-            "publishers": [
-                {
-                "name": "@electron-forge/publisher-github",
-                "config": {
-                    "repository": {
-                    "owner": "dmartinlozano",
-                    "name": "kodi_renamer_app"
-                    }
-                }
-                }
-            ]
-        }
-    },
-    "publish": {
-        "provider": "github",
-        "owner": "dmartinlozano",
-        "repo": "https://github.com/dmartinlozano/kodi_renamer_app"
     }
 }

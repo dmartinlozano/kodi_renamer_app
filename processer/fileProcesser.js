@@ -98,8 +98,6 @@ class FileProcesser{
         episodes.forEach((episode)=>{
             if (episode.pathToRename){
                 try{
-                    console.log("rename episode:")
-                    console.log(episode);
                     fs.renameSync(episode.path, episode.pathToRename);
                 }catch(e){
                     global.win.webContents.send('errorNotification:show', e.message);

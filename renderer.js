@@ -5,8 +5,8 @@ const { Settings } = require('./dto/settings.js');
 document.addEventListener('DOMContentLoaded', () => {
 
     if (process.env.NODE_ENV === 'test') { 
-        webUtils.getPathForFile = function(fileName) {
-            return `./tests/tmp/${fileName}`; 
+        webUtils.getPathForFile = function(file) {
+            return `./tests/tmp/${file.name}`; 
         }; 
     }
 
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         filmsDropArea.classList.remove('hover');
         const files = Array.from(event.dataTransfer.files).filter(file => file.type !== '' || /\.[^/.]+$/.test(file.name));
-        ipcRenderer.send('film:add', files.map((film) => new Movie(webUtils.getPathForFile(film.name))));
+        ipcRenderer.send('film:add', files.map((film) => new Movie(webUtils.getPathForFile(film))));
     });
 
     tvShowDropArea.addEventListener('drop', (event) => {
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filmsDropArea.classList.remove('hover');
         const folders = Array.from(event.dataTransfer.files);
         if (folders.length === 1) {
-            ipcRenderer.send('tvShow:isFolder', webUtils.getPathForFile(folders[0].name));
+            ipcRenderer.send('tvShow:isFolder', webUtils.getPathForFile(folders[0]));
         }else{
             win.webContents.send('okNotification:show', 'Only one folder at a time');
         }
