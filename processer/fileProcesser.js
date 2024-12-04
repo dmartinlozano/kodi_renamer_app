@@ -87,14 +87,19 @@ class FileProcesser{
     }
 
     static renameFilm(film){
-        const directory = path.dirname(film.path);
-        fs.renameSync(film.path, `${directory}/${film.nameToRename}`);
+        try{
+            fs.renameSync(film.path, `${path.dirname(film.path)}/${film.nameToRename}`);
+        }catch(e){
+            global.win.webContents.send('errorNotification:show', e.message);
+        }
     }
 
     static renameEpisodes(episodes){
         episodes.forEach((episode)=>{
             if (episode.pathToRename){
                 try{
+                    console.log("rename episode:")
+                    console.log(episode);
                     fs.renameSync(episode.path, episode.pathToRename);
                 }catch(e){
                     global.win.webContents.send('errorNotification:show', e.message);

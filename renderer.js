@@ -4,6 +4,12 @@ const { Settings } = require('./dto/settings.js');
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    if (process.env.NODE_ENV === 'test') { 
+        webUtils.getPathForFile = function(fileName) {
+            return `./tests/tmp/${fileName}`; 
+        }; 
+    }
+
     //TABS:
     const e = document.querySelectorAll(".tabs");
     void 0 !== e && e.forEach(e => {
@@ -61,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         filmsDropArea.classList.remove('hover');
         const files = Array.from(event.dataTransfer.files).filter(file => file.type !== '' || /\.[^/.]+$/.test(file.name));
-        ipcRenderer.send('film:add', files.map((film) => new Movie(webUtils.getPathForFile(film))));
+        ipcRenderer.send('film:add', files.map((film) => new Movie(webUtils.getPathForFile(film.name))));
     });
 
     tvShowDropArea.addEventListener('drop', (event) => {
@@ -69,8 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
         filmsDropArea.classList.remove('hover');
         const folders = Array.from(event.dataTransfer.files);
         if (folders.length === 1) {
-            const folderPath = webUtils.getPathForFile(folders[0]);
-            ipcRenderer.send('tvShow:isFolder', folderPath);
+            ipcRenderer.send('tvShow:isFolder', webUtils.getPathForFile(folders[0].name));
+        }else{
+            win.webContents.send('okNotification:show', 'Only one folder at a time');
         }
     });
 
@@ -81,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('renameTvShowsButton').addEventListener('click', () => {
         const inputs = Array.from(document.querySelectorAll('#episodesList input'));
         let results = inputs.map((input)=>({
-            index: parseInt(input.dataset.index, 10),
+            path: input.dataset.path,
             type: input.dataset.type, //'season' - 'episode',
             value: parseInt(input.value, 10)
         }));
@@ -91,44 +98,47 @@ document.addEventListener('DOMContentLoaded', () => {
     //ipcRenderer
 
     ipcRenderer.on('films:updated', (event, films) => {
+
         let tableBody = document.getElementById('filmsList');
         tableBody.innerHTML = '';
-        Array.from(films).forEach((film, index) => {
+
+        for (let i = 0; i < films.length; i++) {
+            
             const row = document.createElement('tr');
             row.classList.add('has-text-left');
 
             const nameCell = document.createElement('td');
-            nameCell.textContent = film.path.split('/').pop();
+            nameCell.textContent = films[i].path.split('/').pop();
             row.appendChild(nameCell);
 
             const nameToRenameCell = document.createElement('td');
-            if (film.nameToRename !== null && film.nameToRename !== undefined){
-                nameToRenameCell.textContent = film.nameToRename;
+            if (films[i].nameToRename !== null && films[i].nameToRename !== undefined){
+                nameToRenameCell.textContent = films[i].nameToRename;
             }
             row.appendChild(nameToRenameCell);
 
             const stateCell = document.createElement('td');
-            if (film.state == State.INIT){
+            if (films[i].state === State.INIT){
                 const progressDiv = document.createElement('div');
                 progressDiv.classList.add('circular-progress');
                 stateCell.appendChild(progressDiv);
             }
-            if (film.state = State.FOUND_DONE){
+            if (films[i].state === State.FOUND_DONE){
                 let findButton = document.createElement('button');
                 findButton.textContent = 'Find';
                 findButton.classList.add('button', 'is-primary');
                 findButton.style.marginLeft = '10px'; 
-                findButton.addEventListener('click', () => openFindModal('FILMS', film.suggestedTitle, film.suggestedYear, index));
+                findButton.addEventListener('click', () => openFindModal('FILMS', films[i].suggestedTitle, films[i].suggestedYear, i));
                 stateCell.appendChild(findButton);
 
                 let deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Remove';
                 deleteButton.classList.add('button', 'is-danger');
                 deleteButton.style.marginLeft = '10px'; 
-                deleteButton.addEventListener('click', () => deleteFilm(film.id));
+                deleteButton.addEventListener('click', () => deleteFilm(films[i].id));
                 stateCell.appendChild(deleteButton);
             }
-            if (film.state = State.COMPLETED){
+            if (films[i].state === State.COMPLETED){
                 const doneDiv = document.createElement('div');
                 doneDiv.innerHTML = '&#9989;';
                 stateCell.appendChild(doneDiv);
@@ -137,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
             row.appendChild(stateCell);
             
             tableBody.appendChild(row);
-        });
+        };
     });
 
     ipcRenderer.on('tvShow:updated', (event, tvShow) => {
@@ -187,49 +197,61 @@ document.addEventListener('DOMContentLoaded', () => {
         let episodesTableBody = document.getElementById('episodesList');
         episodesTableBody.innerHTML = '';
 
-        for (let i=0; i<tvShow.episodes.length; i++){
-            row = document.createElement('tr');
-            row.classList.add('has-text-left');
+        if (tvShow.state !== State.COMPLETED){
 
-            const nameCell = document.createElement('td');
-            nameCell.textContent = tvShow.episodes[i].path.split('/').pop();
-            row.appendChild(nameCell);
+            tvShow.episodes.sort((a, b) => {
+                if (a.path < b.path) {
+                    return 1;  // Decreciente
+                } else if (a.path > b.path) {
+                    return -1;
+                }
+                return 0;
+            });
 
-            const sessionCell = document.createElement('td');
-            const sessionInput = document.createElement('input');
-            sessionInput.type = 'number';
-            sessionInput.value = tvShow.episodes[i].season;
-            sessionInput.max = 999;
-            sessionInput.min = 1;
-            sessionInput.maxLength = 3;
-            sessionInput.classList.add('input', 'is-small');
-            sessionInput.dataset.index = i
-            sessionInput.dataset.type = 'season';
-            sessionCell.appendChild(sessionInput);
-            row.appendChild(sessionCell);
+            for (let i=0; i<tvShow.episodes.length; i++){
+                row = document.createElement('tr');
+                row.classList.add('has-text-left');
 
-            const episodeCell = document.createElement('td');
-            const episodeInput = document.createElement('input');
-            episodeInput.type = 'number';
-            episodeInput.value = tvShow.episodes[i].episode;
-            episodeInput.max = 999;
-            episodeInput.min = 1;
-            episodeInput.maxLength = 3;
-            episodeInput.classList.add('input', 'is-small');
-            episodeInput.dataset.index = i;
-            episodeInput.dataset.type = 'episode';
-            episodeCell.appendChild(episodeInput);
-            row.appendChild(episodeCell);
+                const nameCell = document.createElement('td');
+                nameCell.textContent = tvShow.episodes[i].path.split('/').pop();
+                row.appendChild(nameCell);
 
-            let deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Remove';
-            deleteButton.classList.add('button', 'is-danger');
-            deleteButton.style.marginLeft = '10px'; 
-            deleteButton.addEventListener('click', () => deleteTvShow(i));
-            stateCell.appendChild(deleteButton);
-            row.appendChild(deleteButton);
+                const sessionCell = document.createElement('td');
+                const sessionInput = document.createElement('input');
+                sessionInput.type = 'number';
+                sessionInput.value = tvShow.episodes[i].season;
+                sessionInput.max = 999;
+                sessionInput.min = 1;
+                sessionInput.maxLength = 3;
+                sessionInput.classList.add('input', 'is-small');
+                sessionInput.dataset.path = tvShow.episodes[i].path;
+                sessionInput.dataset.type = 'season';
+                sessionCell.appendChild(sessionInput);
+                row.appendChild(sessionCell);
 
-            episodesTableBody.appendChild(row);
+                const episodeCell = document.createElement('td');
+                const episodeInput = document.createElement('input');
+                episodeInput.type = 'number';
+                episodeInput.value = tvShow.episodes[i].episode;
+                episodeInput.max = 999;
+                episodeInput.min = 1;
+                episodeInput.maxLength = 3;
+                episodeInput.classList.add('input', 'is-small');
+                episodeInput.dataset.path = tvShow.episodes[i].path;
+                episodeInput.dataset.type = 'episode';
+                episodeCell.appendChild(episodeInput);
+                row.appendChild(episodeCell);
+
+                let deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Remove';
+                deleteButton.classList.add('button', 'is-danger');
+                deleteButton.style.marginLeft = '10px'; 
+                deleteButton.addEventListener('click', () => deleteTvShow(i));
+                stateCell.appendChild(deleteButton);
+                row.appendChild(deleteButton);
+
+                episodesTableBody.appendChild(row);
+            }
         }
     });
 

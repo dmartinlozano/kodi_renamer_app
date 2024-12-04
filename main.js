@@ -119,13 +119,8 @@ ipcMain.on('tvShow:isFolder', async(event, folderPath)=>{
 });
 
 ipcMain.on('tvShow:rename', (event, episodesInput)=>{
-  const groupedInputs = episodesInput.reduce((acc, input) => {
-    if (!acc[input.index]) acc[input.index] = {};
-    acc[input.index][input.type] = input.value; // Store 'season' or 'episode' with the value
-    return acc;
-  }, {});
-  tvShow.episodes.forEach((episode, index) => {
-    const inputData = groupedInputs[index];
+  for (const episode of tvShow.episodes){
+    const inputData = episodesInput.find((input)=>episode.path === input.path);
     if (inputData) {
       const season = inputData.season || episode.season;
       const episodeNum = inputData.episode || episode.episode;
@@ -145,9 +140,10 @@ ipcMain.on('tvShow:rename', (event, episodesInput)=>{
         }
       }
     }
-  });
+  };
   try{
     FileProcesser.renameEpisodes(tvShow.episodes);
+    tvShow.state = State.COMPLETED;
     win.webContents.send('tvShow:updated', tvShow);
     win.webContents.send('okNotification:show', 'The files has been renamed');
   }catch(e){
