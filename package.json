@@ -3,16 +3,20 @@
     "productName": "Kodi Renamer",
     "version": "1.0.0",
     "main": "main.js",
-    "author": "dmartinlozano",
     "license": "Apache-2.0",
+    "author": {
+        "name": "dmartinlozano",
+        "email": "kodi-renamer@gmail.com"
+    },
     "scripts": {
         "start": "electron .",
-        "test": "wdio run ./wdio.conf.js"
+        "test": "wdio run ./wdio.conf.js",
+        "build": "electron-builder"
     },
     "dependencies": {
+        "@electron-forge/publisher-github": "^7.6.0",
         "axios": "^1.7.7",
         "dotenv": "^16.4.5",
-        "electron": "^33.2.0",
         "tmdb-js": "^1.1.6",
         "tmdb-js-wrapper": "^1.0.4"
     },
@@ -22,8 +26,63 @@
         "@wdio/mocha-framework": "^9.2.8",
         "@wdio/reporter": "^9.2.14",
         "@wdio/spec-reporter": "^9.2.14",
+        "electron": "^33.2.0",
+        "electron-builder": "^25.1.8",
         "mocha": "^10.8.2",
         "wdio": "^6.0.1",
-        "wdio-electron-service": "^7.3.1"
+        "wdio-electron-service": "^7.3.1",
+        "@electron-forge/publisher-github": "^7.6.0"
+    },
+    "build": {
+        "appId": "com.dmlv.kodi_renamer",
+        "productName": "Kodi Renamer",
+        "directories": {
+            "output": "dist",
+            "buildResources": "assets"
+        },
+        "files": [
+            "build/**/*",
+            "main.js",
+            "package.json"
+        ],
+        "mac": {
+            "target": "dmg",
+            "icon": "assets/kodi_renamer_icon.icns",
+            "hardenedRuntime": false,
+            "identity": null,
+            "sign": false
+        },
+        "win": {
+            "target": "nsis",
+            "icon": "assets/kodi_renamer_icon.ico"
+        },
+        "linux": {
+            "target": [
+                "AppImage",
+                "deb",
+                "rpm"
+            ],
+            "icon": "assets/kodi_renamer_icon.png"
+        }
+    },
+    "config": {
+        "forge": {
+            "publishers": [
+                {
+                "name": "@electron-forge/publisher-github",
+                "config": {
+                    "repository": {
+                    "owner": "dmartinlozano",
+                    "name": "kodi_renamer_app"
+                    }
+                }
+                }
+            ]
+        }
+    },
+    "publish": {
+        "provider": "github",
+        "owner": "dmartinlozano",
+        "repo": "https://github.com/dmartinlozano/kodi_renamer_app"
     }
 }

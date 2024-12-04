@@ -20,7 +20,7 @@ app.whenReady().then(()=>{
   });
   win.loadFile('index.html');
   win.webContents.on('did-finish-load', () => win.webContents.send('ready'));
-  win.webContents.openDevTools();
+  //win.webContents.openDevTools();
   global.win = win;
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(
