@@ -29,38 +29,6 @@
         "electron-builder": "^25.1.8",
         "mocha": "^10.8.2",
         "wdio": "^6.0.1",
-        "wdio-electron-service": "^7.3.1",
-        "@electron-forge/publisher-github": "^7.6.0"
-    },
-    "build": {
-        "appId": "com.dmlv.kodi_renamer",
-        "productName": "Kodi Renamer",
-        "directories": {
-            "output": "dist",
-            "buildResources": "assets"
-        },
-        "publish": {
-            "provider": "github",
-            "releaseType": "release"
-        },
-        "mac": {
-            "target": "dmg",
-            "icon": "assets/kodi_renamer_icon.icns",
-            "hardenedRuntime": false,
-            "identity": null,
-            "sign": false
-        },
-        "win": {
-            "target": "nsis",
-            "icon": "assets/kodi_renamer_icon.ico"
-        },
-        "linux": {
-            "target": [
-                "AppImage",
-                "deb",
-                "rpm"
-            ],
-            "icon": "assets/kodi_renamer_icon.png"
-        }
+        "wdio-electron-service": "^7.3.1"
     }
 }
