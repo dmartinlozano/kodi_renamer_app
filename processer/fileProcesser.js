@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { searchMovie, searchTvShow } = require('./tmdbClient.js');
-const { State } = require('../dto/file.js');
+const { State, KodiVideoExtensions, KodiSubtitleExtensions } = require('../dto/file.js');
 const { extractNameWithoutExtension, 
         extractYear, 
         clearFileName,
@@ -77,7 +77,10 @@ class FileProcesser{
                 if (entry.isDirectory()) {
                     await this.getEpisodes(tvShow, entryFullPath);
                 } else if (entry.isFile()) {
-                    tvShow.episodes.push(extractSeasonAndEpisode(entryFullPath));
+                    const fileExtension = path.extname(entry.name).toLowerCase();
+                    if (KodiVideoExtensions.includes(fileExtension)) {
+                        tvShow.episodes.push(extractSeasonAndEpisode(entryFullPath));
+                    }
                 }
             }));
         } catch (e) {
@@ -88,7 +91,21 @@ class FileProcesser{
 
     static renameFilm(film){
         try{
-            fs.renameSync(film.path, `${path.dirname(film.path)}/${film.nameToRename}`);
+            //rename file
+            const originalPath = film.path;
+            const newPath = `${path.dirname(film.path)}/${film.nameToRename}`;
+            fs.renameSync(originalPath, newPath);
+
+            //rename subtitle if exists
+            const originalBaseName = path.basename(originalPath, path.extname(originalPath));
+            const newBaseName = path.basename(newPath, path.extname(newPath));
+
+            KodiSubtitleExtensions.forEach(extension => {
+                const subtitlePath = `${path.dirname(originalPath)}/${originalBaseName}${extension}`;
+                const newSubtitlePath = `${path.dirname(newPath)}/${newBaseName}${extension}`;
+                if (fs.existsSync(subtitlePath)) fs.renameSync(subtitlePath, newSubtitlePath);
+            });
+
         }catch(e){
             global.win.webContents.send('errorNotification:show', e.message);
         }
@@ -98,7 +115,22 @@ class FileProcesser{
         episodes.forEach((episode)=>{
             if (episode.pathToRename){
                 try{
-                    fs.renameSync(episode.path, episode.pathToRename);
+                    // Rename episode
+                    const originalPath = episode.path;
+                    const newPath = episode.pathToRename;
+                    fs.renameSync(originalPath, newPath);
+
+                    // Renombrar subtitle if exists
+                    const originalBaseName = path.basename(originalPath, path.extname(originalPath));
+                    const newBaseName = path.basename(newPath, path.extname(newPath));
+
+                    KodiSubtitleExtensions.forEach(extension => {
+                        const subtitlePath = `${path.dirname(originalPath)}/${originalBaseName}${extension}`;
+                        const newSubtitlePath = `${path.dirname(newPath)}/${newBaseName}${extension}`;
+                        if (fs.existsSync(subtitlePath)) {
+                            fs.renameSync(subtitlePath, newSubtitlePath);
+                        }
+                    });
                 }catch(e){
                     global.win.webContents.send('errorNotification:show', e.message);
                 }

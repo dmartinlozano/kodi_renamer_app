@@ -9,6 +9,7 @@ describe('TvShows', () => {
         './tests/tmp/South Park/Temporada1/South Park 1x03.mkv',
         './tests/tmp/South Park/Temporada2/South Park 2x10.mkv',
         './tests/tmp/South Park/South Park 4x05.mkv',
+        './tests/tmp/South Park/South Park 4x05.srt',
     ]
 
     it('electron open', async () => {
@@ -191,18 +192,19 @@ describe('TvShows', () => {
     });
 
     it('rename button', async () => {
-        
-        const episodesTable = await $('#episodesList');  
-        const rows = await episodesTable.$$('tr');
-        const episodesRenamed = [];
 
-        for (let i = 0; i < rows.length; i++) {
-            const firstRowCells = await rows[i].$$('td');
-            const firstCellText = await firstRowCells[0].getText();
-            if (!tvShowEpisodesPaths.includes(firstCellText)) {
-                episodesRenamed.push(firstCellText);
+        //get paths in table:
+        const table = await $('#episodesList');   
+        const rows = await table.$$('tr');
+        const dataPaths = [];
+        for (const row of rows) {
+            const input = await row.$('input[data-path]');
+            if (input) {
+                const dataPath = await input.getAttribute('data-path');
+                if (dataPath) dataPaths.push(dataPath);
             }
         }
+        const validPaths = [...new Set(dataPaths)];
 
         //rename button
         const removeButton = await $('#renameTvShowsButton');   
@@ -213,18 +215,20 @@ describe('TvShows', () => {
         const text = await checkDiv.getText();
         expect(text).toBe('✅');
 
+        //check renamed files
         for (let originalPath of tvShowEpisodesPaths) {
             const fileName = path.basename(originalPath);
-            const isRenamed = episodesRenamed.includes(fileName);
+            const fileNameWithoutExt = path.basename(fileName, path.extname(fileName));
+            const validFileNames = validPaths.map(validPath => path.basename(validPath, path.extname(validPath)));
+            const isRenamed = validFileNames.includes(fileNameWithoutExt);
             const updatedFileName = isRenamed
-                ? fileName.replace(/(\d+)x(\d+)/, (_, season, episode) => {
+                ? fileNameWithoutExt.replace(/(\d+)x(\d+)/, (_, season, episode) => {
                     return `S${season.padStart(2, '0')}E${episode.padStart(2, '0')}`;
-                })
+                }) + path.extname(fileName)
                 : fileName;
             const expectedPath = path.resolve(originalPath.replace(fileName, updatedFileName));
-            const fileExists = fs.existsSync(expectedPath);
-            expect(fileExists).toBe(true);
-        }        
+            expect(fs.existsSync(expectedPath)).toBe(true);
+        }
     });
 
 });

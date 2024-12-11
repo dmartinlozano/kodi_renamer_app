@@ -6,7 +6,8 @@ describe('Films', () => {
 
     const filePaths = [
         './tests/tmp/Aterriza como puedas.mp4',
-        './tests/tmp/Aterriza como puedas 1.mp4'
+        './tests/tmp/Aterriza como puedas 1.mp4',
+        './tests/tmp/Aterriza como puedas 1.srt'
     ];
 
     it('electron open', async () => {
@@ -167,9 +168,11 @@ describe('Films', () => {
         const text = await checkDiv.getText();
         expect(text).toBe('✅');
 
-        const filePath = path.resolve('./tests/tmp/Aterriza como puedas (1980) {tmdb-813}.mp4');
-        const fileExists = fs.existsSync(filePath);
-        expect(fileExists).toBe(true);
+        let filePath = path.resolve('./tests/tmp/Aterriza como puedas (1980) {tmdb-813}.mp4');
+        expect(true).toBe(fs.existsSync(filePath));
+
+        filePath = path.resolve('./tests/tmp/Aterriza como puedas (1980) {tmdb-813}.srt');
+        expect(true).toBe(fs.existsSync(filePath));
     });
 });
   

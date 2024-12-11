@@ -33,5 +33,16 @@ class TvShow extends Media{
     episodes = []; //list of files paths -tvShow-
     seasons = []; //tmdb sessions data
 }
+
+const KodiVideoExtensions = [
+    ".3gp", ".avi", ".divx", ".flv", ".h264", ".m2ts", ".m4v", ".mkv", ".mov", 
+    ".mp4", ".mpeg", ".mpg", ".mts", ".ogm", ".ogv", ".rm", ".rmvb", ".ts", 
+    ".vob", ".webm", ".wmv", ".xvid"
+];
+
+const KodiSubtitleExtensions = [
+    ".aqt", ".ass", ".dks", ".jss", ".mpl", ".pjs", ".rt", ".smi", ".srt", 
+    ".ssa", ".sub", ".txt", ".vtt"
+];
   
-module.exports = { Movie, TvShow, Episode, State };
+module.exports = { Movie, TvShow, Episode, State, KodiVideoExtensions, KodiSubtitleExtensions };

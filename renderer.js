@@ -1,5 +1,5 @@
 const { ipcRenderer, webUtils } = require('electron');
-const { Movie, State } = require('./dto/file.js');
+const { Movie, State, KodiVideoExtensions } = require('./dto/file.js');
 const { Settings } = require('./dto/settings.js');
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -66,7 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
     filmsDropArea.addEventListener('drop', (event) => {
         event.preventDefault();
         filmsDropArea.classList.remove('hover');
-        const files = Array.from(event.dataTransfer.files).filter(file => file.type !== '' || /\.[^/.]+$/.test(file.name));
+        const files = Array.from(event.dataTransfer.files).filter(file => 
+            KodiVideoExtensions.includes(file.name.substring(file.name.lastIndexOf(".")).toLowerCase())
+        );
         ipcRenderer.send('film:add', files.map((film) => new Movie(webUtils.getPathForFile(film))));
     });
 
