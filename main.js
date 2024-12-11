@@ -74,6 +74,7 @@ ipcMain.on('tvShow:find', async(event, title, year, page)=>{
 
 ipcMain.on('tvShow:found', async(event, title, year)=>{
   tvShow.nameToRename=`${title} (${year})`;
+  tvShow.episodes = [];
   tvShow = await FileProcesser.getEpisodes(tvShow, tvShow.path);
   win.webContents.send('tvShow:updated', tvShow);
 });

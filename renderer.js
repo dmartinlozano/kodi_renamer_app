@@ -74,10 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         filmsDropArea.classList.remove('hover');
         const folders = Array.from(event.dataTransfer.files);
-        if (folders.length === 1) {
+        if (folders.length >= 1) {
             ipcRenderer.send('tvShow:isFolder', webUtils.getPathForFile(folders[0]));
-        }else{
-            win.webContents.send('okNotification:show', 'Only one folder at a time');
         }
     });
 
@@ -151,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     ipcRenderer.on('tvShow:updated', (event, tvShow) => {
+
         //tv show table
 
         let tvShowTableBody = document.getElementById('tvShowList');
