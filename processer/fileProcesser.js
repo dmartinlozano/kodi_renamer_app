@@ -1,4 +1,3 @@
-require('dotenv').config();
 const { searchMovie, searchTvShow } = require('./tmdbClient.js');
 const { State, KodiVideoExtensions, KodiSubtitleExtensions } = require('../dto/file.js');
 const { extractNameWithoutExtension, 
