@@ -110,6 +110,15 @@ class FileProcesser{
         }
     }
 
+    static renameTvShowFolder(tvShow){
+        try{
+            fs.renameSync(tvShow.path, `${path.dirname(tvShow.path)}/${tvShow.nameToRename}`);
+        }catch(e){
+            global.win.webContents.send('errorNotification:show', e.message);
+        }
+
+    }
+
     static renameEpisodes(episodes){
         episodes.forEach((episode)=>{
             if (episode.pathToRename){

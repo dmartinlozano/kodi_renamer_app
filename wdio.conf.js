@@ -1,4 +1,7 @@
 const { execSync } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+
 exports.config = {
     services: ['electron'],
     specs: [
@@ -18,6 +21,8 @@ exports.config = {
     },
     before: function (capabilities, specs) {
         process.env.NODE_ENV = 'test'; 
+        fs.rmSync(path.resolve('./tests/tmp/'), { recursive: true, force: true }); 
+        fs.mkdirSync(path.resolve('./tests/tmp/'), { recursive: true, force: true }); 
     },
     onComplete: function () {
         try {

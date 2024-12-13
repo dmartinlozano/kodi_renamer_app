@@ -56,11 +56,7 @@ describe('TvShows', () => {
         const isModalVisible = await tvShowList.isDisplayed();
         expect(isModalVisible).toBe(true);
 
-        //create folder and episodes
-        const tvShowFolder = path.resolve(tvShowPath);
-        if (fs.existsSync(path.dirname(tvShowFolder))) fs.rmSync(tvShowFolder, { recursive: true });
-        fs.mkdirSync(tvShowFolder, { recursive: true }); 
-
+        //create episodes
         for (const filePath of tvShowEpisodesPaths) {
             const file = path.resolve(filePath);
             if (!fs.existsSync(path.dirname(file))) fs.mkdirSync(path.dirname(file), { recursive: true });    
@@ -215,6 +211,9 @@ describe('TvShows', () => {
         const text = await checkDiv.getText();
         expect(text).toBe('✅');
 
+        const tvShowOriginal = await (await $('//*[@id="tvShowList"]/tr/td[1]')).getText();
+        const tvShowRenamed = await (await $('//*[@id="tvShowList"]/tr/td[2]')).getText();
+
         //check renamed files
         for (let originalPath of tvShowEpisodesPaths) {
             const fileName = path.basename(originalPath);
@@ -227,7 +226,8 @@ describe('TvShows', () => {
                 }) + path.extname(fileName)
                 : fileName;
             const expectedPath = path.resolve(originalPath.replace(fileName, updatedFileName));
-            expect(fs.existsSync(expectedPath)).toBe(true);
+            const expectedPathFull = expectedPath.replace(tvShowOriginal, tvShowRenamed);
+            expect(fs.existsSync(expectedPathFull)).toBe(true);
         }
     });
 
