@@ -38,7 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ipcRenderer.send('settings:get',
             new Settings(
                 localStorage.getItem("lang"),
-                localStorage.getItem("includeAdult")
+                localStorage.getItem("includeAdult") === "true",
+                localStorage.getItem("customTmdbApiKey")
             )
         );
     }else{

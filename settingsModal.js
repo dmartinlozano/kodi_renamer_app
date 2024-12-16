@@ -5,6 +5,7 @@ function openSettingsModal() {
     const saveSettingsButton = document.getElementById('saveSettingsButton');
     const languageSelector = document.getElementById('languageSelector');
     const includeAdultCheck = document.getElementById('includeAdult');
+    const customTmdbApiKeyInput = document.getElementById('customTmdbApiKey');
 
     ipcRenderer.send('languages');
 
@@ -21,14 +22,20 @@ function openSettingsModal() {
         if (localStorage.getItem('lang')) languageSelector.value = localStorage.getItem('lang');
     });
 
+    includeAdultCheck.checked = localStorage.getItem("includeAdult") === 'true';
+    customTmdbApiKeyInput.value = localStorage.getItem("customTmdbApiKey");
+
     closeModalButton.addEventListener('click', closeModal);
     cancelModalButton.addEventListener('click', closeModal);
     saveSettingsButton.addEventListener('click', () => {
-        let lang = languageSelector.value;
-        let includeAdult = includeAdultCheck.checked;
-        localStorage.setItem('lang', lang);
-        localStorage.setItem('includeAdult', includeAdult);
-        ipcRenderer.send('settings:get', new Settings(lang, includeAdult));
+        localStorage.setItem('lang', languageSelector.value);
+        localStorage.setItem('includeAdult', includeAdultCheck.checked);
+        localStorage.setItem('customTmdbApiKey', customTmdbApiKeyInput.value);
+        ipcRenderer.send('settings:get', new Settings(
+            languageSelector.value, 
+            includeAdultCheck.checked,
+            customTmdbApiKeyInput.value
+        ));
         closeModal();
     });
 

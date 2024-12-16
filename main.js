@@ -47,6 +47,9 @@ ipcMain.on('languages', async(event)=>{
 
 ipcMain.on('settings:get', async(event, newSettings)=>{
   global.settings = newSettings;
+  //reload with settings:
+  delete require.cache[require.resolve('./processer/tmdbClient.js')];
+  const { searchMovie, searchTvShow, languages } = require('./processer/tmdbClient.js');
 });
 
 ipcMain.on('film:add', async (event, newFilms) => {

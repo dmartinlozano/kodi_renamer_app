@@ -157,7 +157,7 @@
                 <p class="modal-card-title">Settings</p>
                 <button class="delete" aria-label="close" id="closeModal"></button>
             </header>
-            <section class="modal-card-body">
+            <section class="modal-card-body" style="text-align: left;">
                 <div class="field">
                     <label class="label">Select your language of themoviedb scrapper Kodi:</label>
                     <div class="control">
@@ -165,6 +165,18 @@
                             <select id="languageSelector">
                             </select>
                         </div>
+                    </div>
+                </div>
+                <div class="field is-horizontal">
+                    <div class="field-label is-normal" style="flex: 2;">
+                      <label class="label">If you get an 429 error:</label>
+                    </div>
+                    <div class="field-body" style="flex: 4;">
+                      <div class="field">
+                        <div class="control">
+                          <input class="input" type="text" id="customTmdbApiKey" placeholder="Custom tmdb API key">
+                        </div>
+                      </div>
                     </div>
                 </div>
                 <div class="field">
