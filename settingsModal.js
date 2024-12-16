@@ -1,5 +1,5 @@
 function openSettingsModal() {
-    const languageModal = document.getElementById('languageModal');
+    const settingsModal = document.getElementById('settingsModal');
     const closeModalButton = document.getElementById('closeModal');
     const cancelModalButton = document.getElementById('cancelModal');
     const saveSettingsButton = document.getElementById('saveSettingsButton');
@@ -8,8 +8,8 @@ function openSettingsModal() {
 
     ipcRenderer.send('languages');
 
-    const openModal = () => languageModal.classList.add('is-active');
-    const closeModal = () => languageModal.classList.remove('is-active');
+    const openModal = () => settingsModal.classList.add('is-active');
+    const closeModal = () => settingsModal.classList.remove('is-active');
 
     ipcRenderer.on('languages', (event, langs)=>{
         langs.forEach(lang => {

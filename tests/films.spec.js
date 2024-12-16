@@ -20,9 +20,9 @@ describe('Films', () => {
         await browser.pause(5000);
 
         //settings modal
-        const languageModal = $('#languageModal');
-        await languageModal.waitForDisplayed({ timeout: 5000 });
-        const isModalVisible = await languageModal.isDisplayed();
+        const settingsModal = $('#settingsModal');
+        await settingsModal.waitForDisplayed({ timeout: 5000 });
+        const isModalVisible = await settingsModal.isDisplayed();
         expect(isModalVisible).toBe(true);
 
         //select spanish language in selector & adults content
@@ -41,7 +41,7 @@ describe('Films', () => {
         //save button settings modal
         const saveSettingsButton = $('#saveSettingsButton');
         await saveSettingsButton.click();
-        await languageModal.waitForDisplayed({ reverse: true, timeout: 5000 });
+        await settingsModal.waitForDisplayed({ reverse: true, timeout: 5000 });
     });
 
     it('drag & drop films', async () => {
