@@ -38,7 +38,8 @@ class FileProcesser{
                     }
                     films[i].state = State.FOUND_DONE;
                 } catch (e) {
-                    global.win.webContents.send('errorNotification:show', e.message);
+                    console.error(e);
+                    if (global.win) global.win.webContents.send('errorNotification:show', e.message);
                     continue;
                 }
             }
@@ -46,12 +47,12 @@ class FileProcesser{
         return films;
     }
     
-    static async checkTvShowInitialState(tvShow, lang){
+    static async checkTvShowInitialState(tvShow){
         const year = extractYear(tvShow.path);
         const folderName = path.basename(tvShow.path);
         let folderNameCleaned = clearFileName(folderName);
         try{
-            const response = await searchTvShow(folderNameCleaned, year, lang, 1);
+            const response = await searchTvShow(folderNameCleaned, year, 1);
             if (response && response.total_results && response.total_results !== 0 && year){
                 const filtered = response.results.filter(tvShow => tvShow.first_air_date.startsWith(year));
                 if (filtered.length === 1) {
@@ -63,7 +64,8 @@ class FileProcesser{
             tvShow.suggestedTitle = folderNameCleaned;
             tvShow.state = State.FOUND_DONE;
         } catch (e) {
-            global.win.webContents.send('errorNotification:show', e.message);
+            console.error(e);
+            if (global.win) global.win.webContents.send('errorNotification:show', e.message);
         }
         return tvShow;
     }
@@ -83,7 +85,7 @@ class FileProcesser{
                 }
             }));
         } catch (e) {
-            global.win.webContents.send('errorNotification:show', e.message);
+            if (global.win) global.win.webContents.send('errorNotification:show', e.message);
         }
         return tvShow;
     }
@@ -106,7 +108,7 @@ class FileProcesser{
             });
 
         }catch(e){
-            global.win.webContents.send('errorNotification:show', e.message);
+            if (global.win) global.win.webContents.send('errorNotification:show', e.message);
         }
     }
 
@@ -114,7 +116,7 @@ class FileProcesser{
         try{
             fs.renameSync(tvShow.path, `${path.dirname(tvShow.path)}/${tvShow.nameToRename}`);
         }catch(e){
-            global.win.webContents.send('errorNotification:show', e.message);
+            if (global.win) global.win.webContents.send('errorNotification:show', e.message);
         }
 
     }
@@ -140,7 +142,7 @@ class FileProcesser{
                         }
                     });
                 }catch(e){
-                    global.win.webContents.send('errorNotification:show', e.message);
+                    if (global.win) global.win.webContents.send('errorNotification:show', e.message);
                 }
             }
         })
