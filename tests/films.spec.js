@@ -49,7 +49,7 @@ describe('Films', () => {
         for (const filePath of filePaths) {
             const file = path.resolve(filePath);
             if (!fs.existsSync(path.dirname(file))) fs.mkdirSync(path.dirname(file), { recursive: true });    
-            if (!fs.existsSync(file))fs.writeFileSync(file, '');
+            if (!fs.existsSync(file)) fs.writeFileSync(file, '');
         };
 
         await browser.execute((filePaths) => {

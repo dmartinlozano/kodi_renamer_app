@@ -133,7 +133,7 @@ ipcMain.on('tvShow:rename', (event, episodesInput)=>{
           const formattedSeason = season.toString().padStart(2, '0');
           const formattedEpisode = episodeNum.toString().padStart(2, '0');
           const match = episode.path.match(new RegExp(episode.patternFound));
-          if (match) {
+          if (match && match[0] && match[0].index !== 0) {
             episode.pathToRename = episode.path.replace(
               match[0],
               `S${formattedSeason}E${formattedEpisode}`

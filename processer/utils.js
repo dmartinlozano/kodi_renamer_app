@@ -3,7 +3,9 @@ const fs = require('fs');
 const { Episode } = require('../dto/file');
 const patterns = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'episodes_template.json'), 'utf8'));
 
+const exists = (filePath) => fs.existsSync(filePath);
 const extractNameWithoutExtension = (filePath) => path.parse(path.basename(filePath)).name;
+const extractFolderPath = (filePath) => path.dirname(filePath);
 const extractExtension = (filePath) => {
     const match = filePath.match(/\.[^/.]+$/);
     return match ? match[0].slice(1) : null;
@@ -24,7 +26,7 @@ const isFolder = (filePath) => {
     try {
         return fs.statSync(filePath).isDirectory();
     } catch (e) {
-        global.win.webContents.send('errorNotification:show', e.message);
+        if (global.win) global.win.webContents.send('errorNotification:show', e.message);
         return false;
     }
 }
@@ -52,7 +54,9 @@ function extractSeasonAndEpisode(fileName) {
 }
 
 module.exports = {
+    exists,
     extractNameWithoutExtension,
+    extractFolderPath,
     extractYear,
     clearFileName,
     extractExtension,

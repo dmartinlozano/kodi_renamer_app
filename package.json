@@ -2,16 +2,21 @@
     "name": "kodi_renamer",
     "productName": "Kodi Renamer",
     "description": "",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "main": "main.js",
     "license": "Apache-2.0",
     "author": {
         "name": "dmartinlozano",
         "email": "kodi-renamer@gmail.com"
     },
+    "bin": {
+        "kodi_renamer": "./cli.js"
+    },
+    "type": "commonjs",
     "scripts": {
         "start": "electron .",
         "test": "wdio run ./wdio.conf.js",
+        "test-cli": "npm link && mocha --timeout 10000 tests/test-cli.mjs",
         "prebuild": "cp ../kodi_renamer_secrets/configuration.js .",
         "build": "npx electron-builder --mac --win --linux",
         "build:mac": "npx electron-builder --mac --config.mac.identity=\"$APPLE_IDENTITY\"",
@@ -21,6 +26,8 @@
     },
     "dependencies": {
         "axios": "^1.7.7",
+        "inquirer": "^7.3.3",
+        "minimist": "^1.2.8",
         "tmdb-js": "^1.1.6",
         "tmdb-js-wrapper": "^1.0.4"
     },
@@ -31,9 +38,12 @@
         "@wdio/mocha-framework": "^9.2.8",
         "@wdio/reporter": "^9.2.14",
         "@wdio/spec-reporter": "^9.2.14",
+        "chai": "^5.1.2",
         "electron": "^33.2.0",
         "electron-builder": "^25.1.8",
         "mocha": "^10.8.2",
+        "node-pty": "^1.0.0",
+        "strip-ansi": "^7.1.0",
         "wdio": "^6.0.1",
         "wdio-electron-service": "^7.3.1"
     },
